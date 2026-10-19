@@ -1,4 +1,5 @@
 from strength_checker import StrengthChecker
+import getpass
 import random
 import datetime
 import json
@@ -97,10 +98,52 @@ def read_from_file() -> dict:
 
 def save_to_file(data) -> None:
     with open(FILE_PATH, "w") as pswd_file:
-        json.dump(data, indent=4)
+        json.dump(data, pswd_file, indent=4)
 
 
-print(read_from_file())
+def find_password(dictionary):
+    key = input("Enter the name of the service the password is used for: ").strip().lower()
+    result = dictionary.get(key)
+    if not result:
+        print(f"There is no password currently stored under the service named '{key}'.")
+        return 
+
+    print(f"The password currently stored for {key} is '{result}'")
+    return key, result
+
+
+def create_password(dictionary):
+    service_name = input("Enter the name of the service the password is attached to: ").strip().lower()
+    new_pass = getpass.getpass("Enter the new password: ")
+    dictionary[service_name] = new_pass
+    save_to_file(dictionary)
+    print("New password saved to file")
+
+
+pswd_data = read_from_file()
+current_service = ""
+current_pass = ""
+program_active = True
+while program_active:
+    if current_pass:
+        action = input("What would you like to do next? Enter 'm' to add subtitute characters to your passsword, 's' to save the current password, 'q' to quit: ").strip().lower()
+    else:
+        action = input("What would you like to do next? Enter 'r' to retrieve a stored password, 'c' to create a new password, 'q' to quit: ").strip().lower()
+
+    if action == "q":
+        break
+    elif action == "r":
+        current_service, current_pass = find_password(pswd_data)
+    elif action == "c":
+        create_password(pswd_data)
+    elif action == "s":
+        pswd_data[current_service] = current_pass
+        save_to_file(pswd_data)
+    elif action == "m":
+        current_pass = sub_letters(current_pass) + generate_random()
+        print(f"The substituted password is {current_pass}")
+
+
 
 for i in range (0,4):
     new = sub_letters("Lyndong") + generate_random()
