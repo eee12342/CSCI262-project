@@ -5,7 +5,8 @@ import json
 import urllib.request
 from subs import SUBS as subs
 
-
+# RTX 5070 Hashcat v7.0.0 benchmark for Hash-Mode 0 (MD5): ~61,000 MH/s
+RTX_5070_MD5_RATE = 61_000_000_000
 FILE_PATH = "passwords.json"
 
 
@@ -36,6 +37,38 @@ def space_calc(password: str):
     password_space = 0
     password_space = possible_char ** length
     return password_space
+
+def estimate_crack_time(password_space, hashes_per_sec=RTX_5070_MD5_RATE): 
+    avg_guesses_needed = password_space / 2
+    seconds = avg_guesses_needed / hashes_per_sec
+    
+    # now convert the amount of seconds into something meaninful
+    if seconds < 0.001:
+            return f"{seconds * 1_000_000:,.2f} microseconds (Instant)"
+    elif seconds < 1:
+        return f"{seconds * 1_000:,.2f} milliseconds (Instant)"
+    elif seconds < 60:
+        return f"{seconds:,.2f} seconds"
+    elif seconds < 3600:
+        return f"{seconds / 60:,.2f} minutes"
+    elif seconds < 86400:
+        return f"{seconds / 3600:,.2f} hours"
+    elif seconds < 31_536_000:
+        return f"{seconds / 86400:,.2f} days"
+    
+    # numbers after this are in years
+    years = seconds / 31_536_000
+    if years < 1_000:
+        return f"{years:,.2f} years"
+    elif years < 1_000_000:
+        return f"{years / 1_000:,.2f} thousand years"
+    elif years < 1_000_000_000:
+        return f"{years / 1_000_000:,.2f} million years"
+    elif years < 1_000_000_000_000:
+        return f"{years / 1_000_000_000:,.2f} billion years"
+    else:
+        return f"{years / 1_000_000_000_000:,.2f} trillion years"
+
 
 
 
@@ -123,9 +156,12 @@ pswd_data = read_from_file()
 current_service = ""
 current_pass = ""
 program_active = True
+
+print(space_calc("hello"))
+print(estimate_crack_time(space_calc("hello")))
 while program_active:
     if current_pass:
-        action = input("What would you like to do next? Enter 'm' to add subtitute characters to your passsword, 's' to save the current password, 'q' to quit: ").strip().lower()
+        action = input("What would you like to do next? Enter 'm' to enhance your passsword, 's' to save the current password, 'q' to quit: ").strip().lower()
     else:
         action = input("What would you like to do next? Enter 'r' to retrieve a stored password, 'c' to create a new password, 'q' to quit: ").strip().lower()
 
@@ -133,6 +169,7 @@ while program_active:
         break
     elif action == "r":
         current_service, current_pass = find_password(pswd_data)
+        print(f"\nrEsimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
     elif action == "c":
         create_password(pswd_data)
     elif action == "s":
@@ -140,11 +177,8 @@ while program_active:
         save_to_file(pswd_data)
     elif action == "m":
         current_pass = sub_letters(current_pass) + generate_random()
-        print(f"The substituted password is {current_pass}")
+        print(f"\nThe enhanced password is {current_pass}\n")
+        print(f"Esimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+        
 
 
-
-for i in range (0,4):
-    new = sub_letters("Lyndong") + generate_random()
-    print(new)
-    print(f"Strength: {space_calc(new)}")
