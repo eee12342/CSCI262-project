@@ -1,4 +1,3 @@
-from strength_checker import StrengthChecker
 import getpass
 import random
 import datetime
