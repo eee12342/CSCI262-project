@@ -3,27 +3,26 @@ import random
 import datetime
 import json
 import urllib.request
+from subs import SUBS as subs
 
-engine = StrengthChecker()
-engine.get_password_input()
+
+FILE_PATH = "passwords.json"
+
+
 def space_calc(password: str):
-    lower_used = False
-    upper_used = False
-    special_used = False
-    number_used = False
+    lower_used = upper_used = special_used = number_used = False
     possible_char = 0
     length = len(password)
-    for i in password:
-        if i.isupper():
+
+    for char in password:
+        if char.isupper():
             upper_used = True
-            
-        elif i.islower():
+        elif char.islower():
             lower_used = True
-        elif i.isdigit():
+        elif char.isdigit():
             number_used = True
         else:
             special_used = True
-    
     
     if lower_used:
         possible_char += 26
@@ -42,61 +41,6 @@ def space_calc(password: str):
 
 def sub_letters(password:str, sub_chance: float = 0.6): # by itself, this does very little, as dictionary attacks account for this
     subbed_password = ""
-    # mapping characters to a list of possible like reddit typing, symbol, or case swap
-    subs = {
-    "a": ["@", "4", "^", "A"],
-    "A": ["@", "4", "^", "a"],
-    "b": ["8", "6", "B"],
-    "B": ["8", "6", "b"],
-    "c": ["(", "<", "{", "[", "C"],
-    "C": ["(", "<", "{", "[", "c"],
-    "d": ["D", ")"],
-    "D": ["0", ")", "d"],
-    "e": ["3", "&", "E"],
-    "E": ["3", "&", "e"],
-    "f": ["#", "F"],
-    "F": ["#", "f"],
-    "g": ["9", "6", "&", "G"],
-    "G": ["9", "6", "&", "g"],
-    "h": ["#", "H"],
-    "H": ["#", "h"],
-    "i": ["1", "!", "|", "I"],
-    "I": ["1", "!", "|", "i"],
-    "j": ["]", ";", "J"],
-    "J": ["]", ";", "j"],
-    "k": ["<", "K"],
-    "K": ["<", "k"],
-    "l": ["1", "!", "|", "L"],
-    "L": ["1", "!", "|", "l"],
-    "m": ["M", "w"],
-    "M": ["m", "W"],
-    "n": ["N", "~"],
-    "N": ["n", "~"],
-    "o": ["0", "*", "O"],
-    "O": ["0", "*", "o"],
-    "p": ["9", "?", "P"],
-    "P": ["9", "?", "p"],
-    "q": ["9", "Q"],
-    "Q": ["9", "q"],
-    "r": ["R", "?"],
-    "R": ["r", "2"],
-    "s": ["$", "5", "z", "S"],
-    "S": ["$", "5", "Z", "s"],
-    "t": ["7", "+", "T"],
-    "T": ["7", "+", "t"],
-    "u": ["v", "U", "_"],
-    "U": ["V", "u", "_"],
-    "v": ["^", "V"],
-    "V": ["^", "v"],
-    "w": ["W", "vv"],
-    "W": ["w", "VV"],
-    "x": ["%", "*", "X"],
-    "X": ["%", "*", "x"],
-    "y": ["?", "Y"],
-    "Y": ["?", "y"],
-    "z": ["2", "%", "Z"],
-    "Z": ["2", "%", "z"],
-    }
     for char in password:
     # check if the character has substitutions available and randomly decide if to use it or not
         if char in subs and random.random() < sub_chance:
@@ -145,15 +89,20 @@ def generate_random():
     return f"{sep}{mutated_wordle}{digits}"
 
 
+def read_from_file() -> dict:
+    with open(FILE_PATH) as pswd_file:
+        data = json.load(pswd_file)
+        return data
+
+
+def save_to_file(data) -> None:
+    with open(FILE_PATH, "w") as pswd_file:
+        json.dump(data, indent=4)
+
+
+print(read_from_file())
+
 for i in range (0,4):
-    
-    print(sub_letters("Lyndong") + generate_random())
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    new = sub_letters("Lyndong") + generate_random()
+    print(new)
+    print(f"Strength: {space_calc(new)}")
