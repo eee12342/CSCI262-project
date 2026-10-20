@@ -157,8 +157,7 @@ current_service = ""
 current_pass = ""
 program_active = True
 
-print(space_calc("hello"))
-print(estimate_crack_time(space_calc("hello")))
+
 while program_active:
     if current_pass:
         action = input("What would you like to do next? Enter 'm' to enhance your passsword, 's' to save the current password, 'q' to quit: ").strip().lower()
