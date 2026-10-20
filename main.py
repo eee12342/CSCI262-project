@@ -168,7 +168,7 @@ def create_password(dictionary):
     dictionary[service_name] = new_pass
     save_to_file(dictionary)
     print("New password saved to file")
-    return new_pass
+    return service_name, new_pass
 
 
 pswd_data = read_from_file()
@@ -179,24 +179,35 @@ program_active = True
 
 while program_active:
     if current_pass:
-        action = input("What would you like to do next? Enter 'm' to enhance your passsword, 's' to save the current password, 'q' to quit: ").strip().lower()
+        action = input("What would you like to do next? Enter 'r' to retrieve a stored password, 'c' to create a new password, 'm' to enhance your password, 's' to save the current password, 'q' to quit: ").strip().lower()
     else:
         action = input("What would you like to do next? Enter 'r' to retrieve a stored password, 'c' to create a new password, 'q' to quit: ").strip().lower()
 
     if action == "q":
         break
+
     elif action == "r":
-        current_service, current_pass = find_password(pswd_data)
-        print(f"\nEsimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
-        print(f"This password has been leaked {password_been_leaked(current_pass)} times")
+        result = find_password(pswd_data)
+        if result:
+            current_service, current_pass = result
+            print(f"\nEstimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+            print(f"This password has been leaked {password_been_leaked(current_pass)} times")
+
     elif action == "c":
-        new_pass = create_password(pswd_data)
-        current_pass = new_pass
-    elif action == "s":
+        current_service, current_pass = create_password(pswd_data)
+
+    elif action == "s" and current_pass:
         pswd_data[current_service] = current_pass
         save_to_file(pswd_data)
-    elif action == "m":
+        print(f"Password saved for '{current_service}'")
+
+    elif action == "m" and current_pass:
         current_pass = sub_letters(current_pass) + generate_random()
         print(f"\nThe enhanced password is {current_pass}\n")
-        print(f"Esimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+        print(f"Estimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+
+    else:
+        print("Invalid option, please try again.")
+
+    print("\n\n")
         
