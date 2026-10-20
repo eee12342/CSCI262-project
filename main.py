@@ -3,6 +3,8 @@ import random
 import datetime
 import json
 import urllib.request
+import requests
+import hashlib
 from subs import SUBS as subs
 
 # RTX 5070 Hashcat v7.0.0 benchmark for Hash-Mode 0 (MD5): ~61,000 MH/s
@@ -70,8 +72,6 @@ def estimate_crack_time(password_space, hashes_per_sec=RTX_5070_MD5_RATE):
         return f"{years / 1_000_000_000_000:,.2f} trillion years"
 
 
-
-
 def sub_letters(password:str, sub_chance: float = 0.6): # by itself, this does very little, as dictionary attacks account for this
     subbed_password = ""
     for char in password:
@@ -122,6 +122,24 @@ def generate_random():
     return f"{sep}{mutated_wordle}{digits}"
 
 
+def password_been_leaked(pswd):
+    # to preserve anonimity, hash with SHA-1 and pass the first 5 bits to the API
+    hashed = hashlib.sha1(pswd.encode()).hexdigest().upper()
+    pre = hashed[:5]
+    suf = hashed[5:]
+    ENDPOINT = f"https://api.pwnedpasswords.com/range/{pre}"
+    response = requests.get(ENDPOINT)
+    response.raise_for_status() # check it was successful
+    leak_num = response.text
+
+    for line in leak_num.splitlines():
+        suffix, leak_count = line.split(":")
+        if suffix == suf:
+            return int(leak_count)
+
+    return 0
+
+
 def read_from_file() -> dict:
     with open(FILE_PATH) as pswd_file:
         data = json.load(pswd_file)
@@ -150,6 +168,7 @@ def create_password(dictionary):
     dictionary[service_name] = new_pass
     save_to_file(dictionary)
     print("New password saved to file")
+    return new_pass
 
 
 pswd_data = read_from_file()
@@ -168,9 +187,11 @@ while program_active:
         break
     elif action == "r":
         current_service, current_pass = find_password(pswd_data)
-        print(f"\nrEsimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+        print(f"\nEsimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
+        print(f"This password has been leaked {password_been_leaked(current_pass)} times")
     elif action == "c":
-        create_password(pswd_data)
+        new_pass = create_password(pswd_data)
+        current_pass = new_pass
     elif action == "s":
         pswd_data[current_service] = current_pass
         save_to_file(pswd_data)
@@ -179,5 +200,3 @@ while program_active:
         print(f"\nThe enhanced password is {current_pass}\n")
         print(f"Esimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
         
-
-
