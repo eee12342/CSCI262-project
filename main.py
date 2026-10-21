@@ -32,7 +32,7 @@ def space_calc(password: str):
     if upper_used:
         possible_char += 26
     if special_used:
-            possible_char += 128
+        possible_char += 32
     if number_used:
         possible_char += 10
         
@@ -72,7 +72,7 @@ def estimate_crack_time(password_space, hashes_per_sec=RTX_5070_MD5_RATE):
         return f"{years / 1_000_000_000_000:,.2f} trillion years"
 
 
-def sub_letters(password:str, sub_chance: float = 0.6): # by itself, this does very little, as dictionary attacks account for this
+def sub_letters(password:str, sub_chance: float = 0.2): # by itself, this does very little, as dictionary attacks account for this
     subbed_password = ""
     for char in password:
     # check if the character has substitutions available and randomly decide if to use it or not
@@ -191,7 +191,11 @@ while program_active:
         if result:
             current_service, current_pass = result
             print(f"\nEstimated time to crack: {estimate_crack_time(space_calc(current_pass))}")
-            print(f"This password has been leaked {password_been_leaked(current_pass)} times")
+            breaches = password_been_leaked(current_pass)
+            leading = ""
+            if breaches > 0:
+                leading = "WARNING: "
+            print(f"{leading}This password has been leaked {breaches} times")
 
     elif action == "c":
         current_service, current_pass = create_password(pswd_data)
